@@ -15,18 +15,6 @@
  */
 package org.pitest;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
@@ -39,9 +27,16 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.pitest.support.DirectoriesOnlyWalker;
 import org.pitest.testapi.execute.Pitest;
-import org.pitest.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * @author Stefan Penndorf <stefan.penndorf@gmail.com>
@@ -87,7 +82,7 @@ public class PitMojoIT {
     verifier.executeGoal("org.pitest:pitest-maven:mutationCoverage");
 
     String secondRun = readCoverage(testDir);
-    assertEquals(firstRun, secondRun);
+    assertThat(firstRun).isEqualTo(secondRun);
   }
 
   @Test
@@ -243,10 +238,11 @@ public class PitMojoIT {
     verifier.executeGoal("site");
     
     String projectReportsHtmlContents = FileUtils.readFileToString(buildFilePath(testDir, "target", "site", "project-reports.html"));
-    assertTrue("did not find expected anchor tag to pit site report", projectReportsHtmlContents.contains("<a href=\"foobar/index.html\" title=\"my-test-pit-report-name\">my-test-pit-report-name</a>"));
-    assertTrue("expected site report directory [" + expectedSiteReportDir + "] does not exist but should exist", expectedSiteReportDir.exists());
+    assertThat(projectReportsHtmlContents).describedAs("did not find expected anchor tag to pit site report" ).contains(
+        "<a href=\"foobar/index.html\" title=\"my-test-pit-report-name\">my-test-pit-report-name</a>");
+    assertThat(expectedSiteReportDir).describedAs("expected site report directory [" + expectedSiteReportDir + "] does not exist but should exist").exists();
     
-    assertFalse("expected default site report directory exists but should not exist since the report location parameter was overridden", buildFilePath(testDir, "target", "site", "pit-reports").exists());
+    assertThat(buildFilePath(testDir, "target", "site", "pit-reports")).describedAs("expected default site report directory exists but should not exist since the report location parameter was overridden").doesNotExist();
   }
 
   @Test
@@ -314,7 +310,7 @@ public class PitMojoIT {
       stream.close();
       return (String) props.get("version");
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -396,7 +392,6 @@ public class PitMojoIT {
       
       String projectReportsHtmlContents = FileUtils.readFileToString(buildFilePath(testDir, "target", "site", "project-reports.html"));
       
-      assertTrue("did not find expected anchor tag to pit site report", projectReportsHtmlContents.contains("<a href=\"pit-reports/index.html\" title=\"PIT Test Report\">PIT Test Report</a>"));
+      assertThat(projectReportsHtmlContents).describedAs("did not find expected anchor tag to pit site report").contains("<a href=\"pit-reports/index.html\" title=\"PIT Test Report\">PIT Test Report</a>");
   }
-
 }
